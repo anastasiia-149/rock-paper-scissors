@@ -1,0 +1,72 @@
+@baseUrl = http://localhost:8080
+@contentType = application/json
+
+### Health Check
+GET {{baseUrl}}/actuator/health
+Accept: {{contentType}}
+
+### Prometheus Metrics
+GET {{baseUrl}}/actuator/prometheus
+Accept: text/plain
+
+
+### Play Game - ROCK
+POST {{baseUrl}}/api/v1/game/play
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+{
+  "playerHand": "ROCK"
+}
+
+### Play Game - PAPER
+POST {{baseUrl}}/api/v1/game/play
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+{
+  "playerHand": "PAPER"
+}
+
+### Play Game - SCISSORS
+POST {{baseUrl}}/api/v1/game/play
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+{
+  "playerHand": "SCISSORS"
+}
+
+### Invalid Hand Value
+POST {{baseUrl}}/api/v1/game/play
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+{
+  "playerHand": "INVALID"
+}
+
+### Missing Request Body
+POST {{baseUrl}}/api/v1/game/play
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+### Null Player Hand
+POST {{baseUrl}}/api/v1/game/play
+Content-Type: {{contentType}}
+Accept: {{contentType}}
+
+{
+  "playerHand": null
+}
+
+### Invalid Content Type
+POST {{baseUrl}}/api/v1/game/play
+Content-Type: text/plain
+Accept: {{contentType}}
+
+### Invalid HTTP Method
+GET {{baseUrl}}/api/v1/game/play
+Accept: {{contentType}}
+
+

@@ -1,0 +1,14 @@
+server:
+  port: 0  # Random port for tests
+
+spring:
+  application:
+    name: rock-paper-scissors-test
+
+# Logging Configuration for Tests
+logging:
+  level:
+    root: INFO
+    com.techub.rps: DEBUG
+    org.springframework.web: WARN
+    org.springframework.test: INFO

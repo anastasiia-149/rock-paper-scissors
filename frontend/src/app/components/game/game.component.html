@@ -1,0 +1,102 @@
+<div class="game-container">
+  <header class="game-header">
+    <h1>{{ T.GAME_TITLE }}</h1>
+    <p class="subtitle">{{ T.GAME_SUBTITLE }}</p>
+  </header>
+
+  <div class="statistics-panel">
+    <div class="stat-card">
+      <div class="stat-label">{{ T.STAT_GAMES_PLAYED }}</div>
+      <div class="stat-value">{{ statistics().gamesPlayed }}</div>
+    </div>
+    <div class="stat-card wins">
+      <div class="stat-label">{{ T.STAT_WINS }}</div>
+      <div class="stat-value">{{ statistics().wins }}</div>
+    </div>
+    <div class="stat-card losses">
+      <div class="stat-label">{{ T.STAT_LOSSES }}</div>
+      <div class="stat-value">{{ statistics().losses }}</div>
+    </div>
+    <div class="stat-card draws">
+      <div class="stat-label">{{ T.STAT_DRAWS }}</div>
+      <div class="stat-value">{{ statistics().draws }}</div>
+    </div>
+    <div class="stat-card winrate">
+      <div class="stat-label">{{ T.STAT_WIN_RATE }}</div>
+      <div class="stat-value">{{ statistics().winRate }}%</div>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="error-message">
+      <span class="error-icon">⚠️</span>
+      <span>{{ error() }}</span>
+      <button class="close-btn" (click)="gameService.clearError()">×</button>
+    </div>
+  }
+
+  <div class="hand-selection">
+    <h2>{{ T.CHOOSE_HAND }}</h2>
+    <div class="hands-container">
+      @for (hand of hands; track hand.value) {
+        <button
+          class="hand-button"
+          [class.selected]="selectedHand() === hand.value"
+          [disabled]="isLoading()"
+          (click)="onHandSelect(hand.value)"
+        >
+          <span class="hand-icon">{{ hand.icon }}</span>
+          <span class="hand-label">{{ hand.label }}</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>{{ T.LOADING_MESSAGE }}</p>
+    </div>
+  }
+
+  @if (currentGame() && showResult()) {
+    <div class="result-container" [class]="getResultColor(currentGame()?.result)">
+      <h2 class="result-title">{{ getResultMessage(currentGame()?.result) }}</h2>
+
+      <div class="hands-comparison">
+        <div class="player-hand">
+          <div class="hand-display">{{ getHandIcon(currentGame()?.playerHand) }}</div>
+          <div class="hand-name">{{ T.LABEL_YOU }}</div>
+          <div class="hand-choice">{{ currentGame()?.playerHand }}</div>
+        </div>
+
+        <div class="vs-divider">{{ T.VS_DIVIDER }}</div>
+
+        <div class="computer-hand">
+          <div class="hand-display">{{ getHandIcon(currentGame()?.computerHand) }}</div>
+          <div class="hand-name">{{ T.LABEL_COMPUTER }}</div>
+          <div class="hand-choice">{{ currentGame()?.computerHand }}</div>
+        </div>
+      </div>
+
+      <div class="game-actions">
+        <button class="btn btn-primary" (click)="resetGame()">
+          {{ T.ACTION_PLAY_AGAIN }}
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (statistics().gamesPlayed > 0) {
+    <div class="reset-container">
+      <button class="btn btn-secondary" (click)="resetStatistics()">
+        {{ T.ACTION_RESET_STATS }}
+      </button>
+    </div>
+  }
+
+  <footer class="game-footer">
+    <p>{{ T.FOOTER_TECH }}</p>
+    <p class="api-info">{{ T.FOOTER_API }}</p>
+  </footer>
+</div>

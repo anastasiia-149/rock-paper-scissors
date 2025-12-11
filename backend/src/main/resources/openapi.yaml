@@ -1,0 +1,123 @@
+openapi: 3.0.3
+info:
+  title: Rock Paper Scissors Game API
+  description: REST API for playing Rock Paper Scissors game.
+  version: 1.0.0
+  contact:
+    name: TecHub Candidate
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+tags:
+  - name: Game
+    description: Rock Paper Scissors game operations
+
+paths:
+  /api/v1/game/play:
+    post:
+      tags:
+        - game
+      description: Play a round of Rock Paper Scissors against the computer
+      operationId: playGame
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlayGameRequest'
+      responses:
+        '200':
+          description: Game played successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameResponse'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    PlayGameRequest:
+      type: object
+      required:
+        - playerHand
+      properties:
+        playerHand:
+          $ref: '#/components/schemas/Hand'
+      description: Request to play a game of Rock Paper Scissors
+    GameResponse:
+      type: object
+      required:
+        - gameId
+        - playerHand
+        - computerHand
+        - result
+        - timestamp
+      properties:
+        gameId:
+          type: string
+          format: uuid
+          description: Unique game identifier
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        playerHand:
+          $ref: '#/components/schemas/Hand'
+        computerHand:
+          $ref: '#/components/schemas/Hand'
+        result:
+          $ref: '#/components/schemas/GameResult'
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when the game was played
+          example: "2025-12-09T20:00:00Z"
+      description: Response containing the game result
+    Hand:
+      type: string
+      enum:
+        - ROCK
+        - PAPER
+        - SCISSORS
+      description: The hand choices available in the game
+    GameResult:
+      type: string
+      enum:
+        - WIN
+        - LOSE
+        - DRAW
+      description: The result from the player's perspective
+    ErrorResponse:
+      type: object
+      required:
+        - status
+        - message
+        - timestamp
+      properties:
+        status:
+          type: integer
+          description: HTTP status code
+          example: 400
+        errorCode:
+          type: string
+          description: Application-specific error code
+          example: "INVALID_HAND"
+        message:
+          type: string
+          description: Error message
+          example: "Invalid request"
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when the error occurred
+          example: "2025-12-09T20:00:00Z"
+      description: Error response
