@@ -1,7 +1,9 @@
-package com.techub.rps.control.ports;
+package com.techub.rps.control;
 
 import com.techub.rps.control.exception.DomainException;
 import com.techub.rps.control.model.User;
+import com.techub.rps.control.ports.UserRegistrationPort;
+import com.techub.rps.control.ports.UserStatisticsPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

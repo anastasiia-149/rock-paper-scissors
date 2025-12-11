@@ -1,5 +1,6 @@
 package com.techub.rps.control.ports;
 
+import com.techub.rps.control.GameService;
 import com.techub.rps.control.exception.DomainException;
 import com.techub.rps.control.model.Game;
 import com.techub.rps.control.model.GameResult;

@@ -1,5 +1,6 @@
 package com.techub.rps.control.ports;
 
+import com.techub.rps.control.UserRegistrationService;
 import com.techub.rps.control.exception.DomainException;
 import com.techub.rps.control.model.User;
 import org.junit.jupiter.api.BeforeEach;

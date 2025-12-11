@@ -1,5 +1,6 @@
 package com.techub.rps.control.ports;
 
+import com.techub.rps.control.StatisticsService;
 import com.techub.rps.control.model.UserStatistics;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
