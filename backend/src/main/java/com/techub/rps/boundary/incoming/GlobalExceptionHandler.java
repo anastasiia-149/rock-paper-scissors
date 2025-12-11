@@ -29,6 +29,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleDomainException(DomainException ex) {
         if (ex.getErrorType() == DomainException.ErrorType.CLIENT_ERROR) {
             log.warn("Client error - {}: {}", ex.getErrorCode(), ex.getMessage());
+
+            if ("USER_NOT_FOUND".equals(ex.getErrorCode())) {
+                return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getErrorCode(), ex.getMessage());
+            }
+
             return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getErrorCode(), ex.getMessage());
         } else {
             log.error("Server error - {}: {}", ex.getErrorCode(), ex.getMessage(), ex);

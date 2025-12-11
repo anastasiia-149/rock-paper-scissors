@@ -1,7 +1,11 @@
 package com.techub.rps.boundary.incoming;
 
 import com.techub.rps.boundary.incoming.dto.GameResponse;
+import com.techub.rps.boundary.incoming.dto.UserResponse;
+import com.techub.rps.boundary.incoming.dto.UserStatisticsResponse;
 import com.techub.rps.control.model.Game;
+import com.techub.rps.control.model.User;
+import com.techub.rps.control.model.UserStatistics;
 import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
@@ -18,6 +22,29 @@ public class GameMapper {
         response.setComputerHand(mapToDtoHand(game.getComputerHand()));
         response.setResult(mapToDtoResult(game.getResult()));
         response.setTimestamp(convertToUtcOffsetDateTime(game.getTimestamp()));
+        return response;
+    }
+
+    public UserResponse toUserDto(User user) {
+        UserResponse response = new UserResponse();
+        response.setUsername(user.getUsername());
+        response.setCreatedAt(convertToUtcOffsetDateTime(user.getCreatedAt()));
+        return response;
+    }
+
+    public UserStatisticsResponse toStatisticsDto(UserStatistics stats) {
+        UserStatisticsResponse response = new UserStatisticsResponse();
+        response.setUsername(stats.getUsername());
+        response.setGamesPlayed(stats.getGamesPlayed());
+        response.setWins(stats.getWins());
+        response.setLosses(stats.getLosses());
+        response.setDraws(stats.getDraws());
+        response.setLastGameId(stats.getLastGameId() != null
+                ? UUID.fromString(stats.getLastGameId())
+                : null);
+        response.setLastGamePlayedAt(stats.getLastGamePlayedAt() != null
+                ? convertToUtcOffsetDateTime(stats.getLastGamePlayedAt())
+                : null);
         return response;
     }
 

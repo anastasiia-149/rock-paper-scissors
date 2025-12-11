@@ -106,4 +106,74 @@ class HexagonalArchitectureTest {
         serviceRule.check(classes);
         adapterRule.check(classes);
     }
+
+    @Test
+    @DisplayName("Port interfaces should only be in control.ports package")
+    void portInterfaces_shouldOnlyBeInControlPorts() {
+        ArchRule rule = classes()
+                .that().haveSimpleNameEndingWith("Port")
+                .and().areInterfaces()
+                .should().resideInAPackage("..control.ports..");
+
+        rule.check(classes);
+    }
+
+    @Test
+    @DisplayName("Domain models should only be in control.model package")
+    void domainModels_shouldOnlyBeInControlModel() {
+        ArchRule rule = classes()
+                .that().resideInAPackage("..control.model..")
+                .should().onlyDependOnClassesThat()
+                .resideInAnyPackage(
+                        "..control.model..",
+                        "..control.exception..",
+                        "java..",
+                        "lombok.."
+                );
+
+        rule.check(classes);
+    }
+
+    @Test
+    @DisplayName("Repositories should only be in boundary.outgoing.db package")
+    void repositories_shouldOnlyBeInBoundaryOutgoingDb() {
+        ArchRule rule = classes()
+                .that().haveSimpleNameEndingWith("Repository")
+                .and().areInterfaces()
+                .should().resideInAPackage("..boundary.outgoing..");
+
+        rule.check(classes);
+    }
+
+    @Test
+    @DisplayName("Entities should only be in boundary.outgoing.db package")
+    void entities_shouldOnlyBeInBoundaryOutgoingDb() {
+        ArchRule rule = classes()
+                .that().areAnnotatedWith("jakarta.persistence.Entity")
+                .should().resideInAPackage("..boundary.outgoing.db..");
+
+        rule.check(classes);
+    }
+
+    @Test
+    @DisplayName("Control layer should not use JPA annotations")
+    void controlLayer_shouldNotUseJpaAnnotations() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage("..control..")
+                .should().dependOnClassesThat()
+                .resideInAPackage("jakarta.persistence..");
+
+        rule.check(classes);
+    }
+
+    @Test
+    @DisplayName("Control layer should not use Spring Data repositories")
+    void controlLayer_shouldNotUseSpringDataRepositories() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage("..control..")
+                .should().dependOnClassesThat()
+                .resideInAPackage("org.springframework.data..");
+
+        rule.check(classes);
+    }
 }

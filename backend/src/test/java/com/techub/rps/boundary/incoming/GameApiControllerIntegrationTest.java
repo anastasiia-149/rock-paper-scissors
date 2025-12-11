@@ -18,9 +18,12 @@ import static org.hamcrest.Matchers.*;
 class GameApiControllerIntegrationTest {
 
     private static final String GAME_API_PATH = "/api/v1/game/play";
+    private static final String USER_API_PATH = "/api/v1/game/user";
+    private static final String STATISTICS_API_PATH = "/api/v1/game/statistics";
     private static final String[] VALID_HANDS = {"ROCK", "PAPER", "SCISSORS"};
     private static final String[] VALID_RESULTS = {"WIN", "LOSE", "DRAW"};
     private static final String TIMESTAMP_PATTERN = "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*";
+    private static final String TEST_USERNAME = "testuser";
 
     @LocalServerPort
     private int port;
@@ -200,11 +203,110 @@ class GameApiControllerIntegrationTest {
         assertThat(gameId1).isNotEqualTo(gameId2);
     }
 
+    @Test
+    @DisplayName("POST /user should register new user")
+    void registerUser_shouldReturn201() {
+        String username = "newuser" + System.currentTimeMillis();
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(createUserBody(username))
+                .when()
+                .post(USER_API_PATH)
+                .then()
+                .statusCode(201)
+                .body("username", equalTo(username))
+                .body("createdAt", notNullValue());
+    }
+
+    @Test
+    @DisplayName("POST /user with duplicate username should return 400")
+    void registerUser_withDuplicateUsername_shouldReturn400() {
+        String username = "duplicate" + System.currentTimeMillis();
+        given()
+                .contentType(ContentType.JSON)
+                .body(createUserBody(username))
+                .when()
+                .post(USER_API_PATH)
+                .then()
+                .statusCode(201);
+        given()
+                .contentType(ContentType.JSON)
+                .body(createUserBody(username))
+                .when()
+                .post(USER_API_PATH)
+                .then()
+                .statusCode(400)
+                .body("message", containsString("already exists"));
+    }
+
+    @Test
+    @DisplayName("POST /user with short username should return 400")
+    void registerUser_withShortUsername_shouldReturn400() {
+        given()
+                .contentType(ContentType.JSON)
+                .body(createUserBody("ab"))
+                .when()
+                .post(USER_API_PATH)
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
+    @DisplayName("GET /statistics/{username} should return user statistics")
+    void getStatistics_shouldReturn200() {
+        String username = "statuser" + System.currentTimeMillis();
+        given()
+                .contentType(ContentType.JSON)
+                .body(createUserBody(username))
+                .post(USER_API_PATH);
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(createBody("ROCK", username))
+                .post(GAME_API_PATH);
+
+        given()
+                .when()
+                .get(STATISTICS_API_PATH + "/" + username)
+                .then()
+                .statusCode(200)
+                .body("username", equalTo(username))
+                .body("gamesPlayed", greaterThanOrEqualTo(1))
+                .body("wins", greaterThanOrEqualTo(0))
+                .body("losses", greaterThanOrEqualTo(0))
+                .body("draws", greaterThanOrEqualTo(0));
+    }
+
+    @Test
+    @DisplayName("GET /statistics/{username} for non-existent user should return 404")
+    void getStatistics_withNonExistentUser_shouldReturn404() {
+        given()
+                .when()
+                .get(STATISTICS_API_PATH + "/nonexistentuser")
+                .then()
+                .statusCode(404);
+    }
+
     private String createBody(String value) {
+        return createBody(value, null);
+    }
+
+    private String createBody(String value, String username) {
+        String actualUsername = username != null ? username : TEST_USERNAME + System.currentTimeMillis();
         return String.format("""
                 {
-                  "playerHand": "%s"
+                  "playerHand": "%s",
+                  "username": "%s"
                 }
-                """, value);
+                """, value, actualUsername);
+    }
+
+    private String createUserBody(String username) {
+        return String.format("""
+                {
+                  "username": "%s"
+                }
+                """, username);
     }
 }

@@ -24,12 +24,16 @@ class GameServiceTest {
     private RandomHandProvider randomHandProvider;
     @Mock
     private MetricsProvider metricsPort;
+    @Mock
+    private UserStatisticsPort userStatisticsPort;
 
     private GameService gameService;
 
+    private static final String TEST_USERNAME = "testuser";
+
     @BeforeEach
     void setUp() {
-        gameService = new GameService(randomHandProvider, metricsPort);
+        gameService = new GameService(randomHandProvider, metricsPort, userStatisticsPort);
     }
 
     @Test
@@ -37,7 +41,7 @@ class GameServiceTest {
     void play_shouldCreateGame_whenPlayerWins() {
         when(randomHandProvider.getRandomHand()).thenReturn(Hand.SCISSORS);
 
-        Game game = gameService.play(Hand.ROCK);
+        Game game = gameService.play(TEST_USERNAME, Hand.ROCK);
 
         assertAll(
                 () -> {
@@ -51,6 +55,7 @@ class GameServiceTest {
         );
 
         verify(randomHandProvider, times(1)).getRandomHand();
+        verify(userStatisticsPort, times(1)).updateStatistics(eq(TEST_USERNAME), any(Game.class));
     }
 
     @Test
@@ -58,7 +63,7 @@ class GameServiceTest {
     void play_shouldCreateGame_whenPlayerLoses() {
         when(randomHandProvider.getRandomHand()).thenReturn(Hand.PAPER);
 
-        Game game = gameService.play(Hand.ROCK);
+        Game game = gameService.play(TEST_USERNAME, Hand.ROCK);
 
         assertAll(
                 () -> {
@@ -70,6 +75,7 @@ class GameServiceTest {
         );
 
         verify(randomHandProvider, times(1)).getRandomHand();
+        verify(userStatisticsPort, times(1)).updateStatistics(eq(TEST_USERNAME), any(Game.class));
     }
 
     @Test
@@ -77,7 +83,7 @@ class GameServiceTest {
     void play_shouldCreateGame_whenDraw() {
         when(randomHandProvider.getRandomHand()).thenReturn(Hand.ROCK);
 
-        Game game = gameService.play(Hand.ROCK);
+        Game game = gameService.play(TEST_USERNAME, Hand.ROCK);
 
         assertAll(
                 () -> {
@@ -89,6 +95,7 @@ class GameServiceTest {
         );
 
         verify(randomHandProvider, times(1)).getRandomHand();
+        verify(userStatisticsPort, times(1)).updateStatistics(eq(TEST_USERNAME), any(Game.class));
     }
 
     @Test
@@ -96,7 +103,7 @@ class GameServiceTest {
     void play_shouldWorkCorrectly_forPaper() {
         when(randomHandProvider.getRandomHand()).thenReturn(Hand.ROCK);
 
-        Game game = gameService.play(Hand.PAPER);
+        Game game = gameService.play(TEST_USERNAME, Hand.PAPER);
 
         assertAll(
                 () -> assertThat(game.getPlayerHand()).isEqualTo(Hand.PAPER),
@@ -110,7 +117,7 @@ class GameServiceTest {
     void play_shouldWorkCorrectly_forScissors() {
         when(randomHandProvider.getRandomHand()).thenReturn(Hand.PAPER);
 
-        Game game = gameService.play(Hand.SCISSORS);
+        Game game = gameService.play(TEST_USERNAME, Hand.SCISSORS);
 
         assertAll(
                 () -> assertThat(game.getPlayerHand()).isEqualTo(Hand.SCISSORS),
@@ -120,14 +127,39 @@ class GameServiceTest {
     }
 
     @Test
+    @DisplayName("play should throw DomainException when username is null")
+    void play_shouldThrowDomainException_whenUsernameIsNull() {
+        assertThatThrownBy(() -> gameService.play(null, Hand.ROCK))
+                .isInstanceOf(DomainException.class)
+                .hasMessage("Username cannot be null or empty")
+                .extracting("errorCode").isEqualTo("INVALID_USERNAME");
+
+        verify(randomHandProvider, never()).getRandomHand();
+        verify(userStatisticsPort, never()).updateStatistics(any(), any());
+    }
+
+    @Test
+    @DisplayName("play should throw DomainException when username is too short")
+    void play_shouldThrowDomainException_whenUsernameTooShort() {
+        assertThatThrownBy(() -> gameService.play("ab", Hand.ROCK))
+                .isInstanceOf(DomainException.class)
+                .hasMessage("Username must be between 3 and 50 characters")
+                .extracting("errorCode").isEqualTo("INVALID_USERNAME");
+
+        verify(randomHandProvider, never()).getRandomHand();
+        verify(userStatisticsPort, never()).updateStatistics(any(), any());
+    }
+
+    @Test
     @DisplayName("play should throw DomainException when player hand is null")
     void play_shouldThrowDomainException_whenPlayerHandIsNull() {
-        assertThatThrownBy(() -> gameService.play(null))
+        assertThatThrownBy(() -> gameService.play(TEST_USERNAME, null))
                 .isInstanceOf(DomainException.class)
                 .hasMessage("Player hand cannot be null")
                 .extracting("errorCode").isEqualTo("INVALID_HAND");
 
         verify(randomHandProvider, never()).getRandomHand();
+        verify(userStatisticsPort, never()).updateStatistics(any(), any());
     }
 
     @Test
@@ -136,7 +168,7 @@ class GameServiceTest {
         when(randomHandProvider.getRandomHand())
                 .thenThrow(DomainException.randomGenerationError("Random generation failed"));
 
-        assertThatThrownBy(() -> gameService.play(Hand.ROCK))
+        assertThatThrownBy(() -> gameService.play(TEST_USERNAME, Hand.ROCK))
                 .isInstanceOf(DomainException.class)
                 .extracting("errorCode").isEqualTo("RANDOM_GENERATION_ERROR");
 
@@ -149,7 +181,7 @@ class GameServiceTest {
         when(randomHandProvider.getRandomHand())
                 .thenThrow(new RuntimeException("Unexpected error"));
 
-        assertThatThrownBy(() -> gameService.play(Hand.ROCK))
+        assertThatThrownBy(() -> gameService.play(TEST_USERNAME, Hand.ROCK))
                 .isInstanceOf(DomainException.class)
                 .hasMessageContaining("Failed to play game")
                 .hasMessageContaining("Unexpected error")
@@ -161,7 +193,7 @@ class GameServiceTest {
     void play_shouldCallRandomHandProviderOnce() {
         when(randomHandProvider.getRandomHand()).thenReturn(Hand.ROCK);
 
-        gameService.play(Hand.PAPER);
+        gameService.play(TEST_USERNAME, Hand.PAPER);
 
         verify(randomHandProvider, times(1)).getRandomHand();
         verifyNoMoreInteractions(randomHandProvider);
@@ -172,8 +204,8 @@ class GameServiceTest {
     void play_shouldGenerateUniqueGameIds() {
         when(randomHandProvider.getRandomHand()).thenReturn(Hand.ROCK);
 
-        Game game1 = gameService.play(Hand.PAPER);
-        Game game2 = gameService.play(Hand.PAPER);
+        Game game1 = gameService.play(TEST_USERNAME, Hand.PAPER);
+        Game game2 = gameService.play(TEST_USERNAME, Hand.PAPER);
 
         assertThat(game1.getGameId()).isNotEqualTo(game2.getGameId());
         verify(randomHandProvider, times(2)).getRandomHand();
@@ -187,9 +219,9 @@ class GameServiceTest {
                 .thenReturn(Hand.PAPER)
                 .thenReturn(Hand.SCISSORS);
 
-        Game game1 = gameService.play(Hand.ROCK);
-        Game game2 = gameService.play(Hand.ROCK);
-        Game game3 = gameService.play(Hand.ROCK);
+        Game game1 = gameService.play(TEST_USERNAME, Hand.ROCK);
+        Game game2 = gameService.play(TEST_USERNAME, Hand.ROCK);
+        Game game3 = gameService.play(TEST_USERNAME, Hand.ROCK);
 
         assertAll(
                 () -> assertThat(game1.getComputerHand()).isEqualTo(Hand.ROCK),

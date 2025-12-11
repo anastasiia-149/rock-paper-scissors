@@ -38,6 +38,14 @@ public class DomainException extends RuntimeException {
         return new DomainException("RANDOM_GENERATION_ERROR", message, cause, ErrorType.SERVER_ERROR);
     }
 
+    public static DomainException userNotFound(String message) {
+        return new DomainException("USER_NOT_FOUND", message, ErrorType.CLIENT_ERROR);
+    }
+
+    public static DomainException invalidUsername(String message) {
+        return new DomainException("INVALID_USERNAME", message, ErrorType.CLIENT_ERROR);
+    }
+
     public enum ErrorType {
         CLIENT_ERROR,  // Maps to HTTP 4xx
         SERVER_ERROR   // Maps to HTTP 5xx

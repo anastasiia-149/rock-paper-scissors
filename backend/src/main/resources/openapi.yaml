@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Rock Paper Scissors Game API
   description: REST API for playing Rock Paper Scissors game.
-  version: 1.0.0
+  version: 1.1.0
   contact:
     name: TecHub Candidate
 
@@ -46,15 +46,85 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/game/user:
+    post:
+      tags:
+        - game
+      description: Register a new user
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterUserRequest'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Invalid request or username already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/game/statistics/{username}:
+    get:
+      tags:
+        - game
+      description: Get game statistics for a specific user
+      operationId: getUserStatistics
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Username to get statistics for
+      responses:
+        '200':
+          description: User statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserStatisticsResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 components:
   schemas:
     PlayGameRequest:
       type: object
       required:
         - playerHand
+        - username
       properties:
         playerHand:
           $ref: '#/components/schemas/Hand'
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+          description: Username of the player
+          example: "player1"
       description: Request to play a game of Rock Paper Scissors
     GameResponse:
       type: object
@@ -96,6 +166,74 @@ components:
         - LOSE
         - DRAW
       description: The result from the player's perspective
+    RegisterUserRequest:
+      type: object
+      required:
+        - username
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+          description: Unique username for the player
+          example: "player1"
+      description: Request to register a new user
+    UserResponse:
+      type: object
+      required:
+        - username
+        - createdAt
+      properties:
+        username:
+          type: string
+          description: Username
+          example: "player1"
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the user was created
+          example: "2025-12-10T20:00:00Z"
+      description: User registration response
+    UserStatisticsResponse:
+      type: object
+      required:
+        - username
+        - gamesPlayed
+        - wins
+        - losses
+        - draws
+      properties:
+        username:
+          type: string
+          description: Username
+          example: "player1"
+        gamesPlayed:
+          type: integer
+          description: Total number of games played
+          example: 100
+        wins:
+          type: integer
+          description: Number of wins
+          example: 45
+        losses:
+          type: integer
+          description: Number of losses
+          example: 35
+        draws:
+          type: integer
+          description: Number of draws
+          example: 20
+        lastGameId:
+          type: string
+          format: uuid
+          description: ID of the last game played
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        lastGamePlayedAt:
+          type: string
+          format: date-time
+          description: Timestamp of the last game played
+          example: "2025-12-10T20:00:00Z"
+      description: User game statistics
     ErrorResponse:
       type: object
       required:
