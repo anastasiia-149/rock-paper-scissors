@@ -22,17 +22,20 @@ class UserRegistrationServiceTest {
     @Mock
     private UserRegistrationPort userRegistrationPort;
 
+    @Mock
+    private UserStatisticsPort userStatisticsPort;
+
     private UserRegistrationService userRegistrationService;
 
     private static final String VALID_USERNAME = "testuser";
 
     @BeforeEach
     void setUp() {
-        userRegistrationService = new UserRegistrationService(userRegistrationPort);
+        userRegistrationService = new UserRegistrationService(userRegistrationPort, userStatisticsPort);
     }
 
     @Test
-    @DisplayName("registerUser should create user when username is valid and unique")
+    @DisplayName("registerUser should create user and initialize statistics when username is valid and unique")
     void registerUser_shouldCreateUser_whenUsernameIsValidAndUnique() {
         User expectedUser = User.builder()
                 .username(VALID_USERNAME)
@@ -50,6 +53,7 @@ class UserRegistrationServiceTest {
 
         verify(userRegistrationPort, times(1)).usernameExists(VALID_USERNAME);
         verify(userRegistrationPort, times(1)).registerUser(VALID_USERNAME);
+        verify(userStatisticsPort, times(1)).initializeStatistics(VALID_USERNAME);
     }
 
     @Test
@@ -62,6 +66,7 @@ class UserRegistrationServiceTest {
 
         verify(userRegistrationPort, never()).usernameExists(any());
         verify(userRegistrationPort, never()).registerUser(any());
+        verify(userStatisticsPort, never()).initializeStatistics(any());
     }
 
     @Test
@@ -74,6 +79,7 @@ class UserRegistrationServiceTest {
 
         verify(userRegistrationPort, never()).usernameExists(any());
         verify(userRegistrationPort, never()).registerUser(any());
+        verify(userStatisticsPort, never()).initializeStatistics(any());
     }
 
     @Test
@@ -86,6 +92,7 @@ class UserRegistrationServiceTest {
 
         verify(userRegistrationPort, never()).usernameExists(any());
         verify(userRegistrationPort, never()).registerUser(any());
+        verify(userStatisticsPort, never()).initializeStatistics(any());
     }
 
     @Test
@@ -98,6 +105,7 @@ class UserRegistrationServiceTest {
 
         verify(userRegistrationPort, never()).usernameExists(any());
         verify(userRegistrationPort, never()).registerUser(any());
+        verify(userStatisticsPort, never()).initializeStatistics(any());
     }
 
     @Test
@@ -112,6 +120,7 @@ class UserRegistrationServiceTest {
 
         verify(userRegistrationPort, never()).usernameExists(any());
         verify(userRegistrationPort, never()).registerUser(any());
+        verify(userStatisticsPort, never()).initializeStatistics(any());
     }
 
     @Test
@@ -126,6 +135,7 @@ class UserRegistrationServiceTest {
 
         verify(userRegistrationPort, times(1)).usernameExists(VALID_USERNAME);
         verify(userRegistrationPort, never()).registerUser(any());
+        verify(userStatisticsPort, never()).initializeStatistics(any());
     }
 
     @Test
@@ -147,6 +157,7 @@ class UserRegistrationServiceTest {
 
         verify(userRegistrationPort, times(1)).usernameExists(minUsername);
         verify(userRegistrationPort, times(1)).registerUser(minUsername);
+        verify(userStatisticsPort, times(1)).initializeStatistics(minUsername);
     }
 
     @Test
@@ -168,5 +179,6 @@ class UserRegistrationServiceTest {
 
         verify(userRegistrationPort, times(1)).usernameExists(maxUsername);
         verify(userRegistrationPort, times(1)).registerUser(maxUsername);
+        verify(userStatisticsPort, times(1)).initializeStatistics(maxUsername);
     }
 }

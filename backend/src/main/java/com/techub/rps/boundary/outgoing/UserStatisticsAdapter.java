@@ -53,6 +53,24 @@ public class UserStatisticsAdapter implements UserStatisticsPort {
         return mapToDomain(username, stats);
     }
 
+    @Override
+    @Transactional
+    public void initializeStatistics(String username) {
+        log.info("Initializing statistics for user: {}", username);
+
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> DomainException.userNotFound("User not found: " + username));
+
+        if (statisticsRepository.findByUserId(user.getId()).isPresent()) {
+            log.info("Statistics already exist for user: {}", username);
+            return;
+        }
+
+        UserStatisticsEntity stats = createNewStatistics(user.getId());
+        statisticsRepository.save(stats);
+        log.info("Statistics initialized for user: {}", username);
+    }
+
     private UserEntity createNewUser(String username) {
         log.info("Creating new user: {}", username);
         UserEntity user = UserEntity.builder()

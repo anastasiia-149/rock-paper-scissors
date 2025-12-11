@@ -1,14 +1,16 @@
-import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { signal } from '@angular/core';
-import { of, throwError } from 'rxjs';
-import { GameComponent } from './game.component';
-import { GameService } from '../../services/game.service';
-import { GameResponse } from '../../models/game.model';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
+import {Router} from '@angular/router';
+import {signal} from '@angular/core';
+import {of, throwError} from 'rxjs';
+import {GameComponent} from './game.component';
+import {GameService} from '../../services/game.service';
+import {GameResponse, UserStatisticsResponse} from '../../models/game.model';
 
 describe('GameComponent', () => {
   let component: GameComponent;
   let fixture: ComponentFixture<GameComponent>;
   let mockGameService: jasmine.SpyObj<GameService>;
+  let mockRouter: jasmine.SpyObj<Router>;
 
   const mockGameResponse: GameResponse = {
     gameId: '123e4567-e89b-12d3-a456-426614174000',
@@ -18,35 +20,51 @@ describe('GameComponent', () => {
     timestamp: '2025-12-10T14:30:00Z'
   };
 
+  const mockStatistics: UserStatisticsResponse = {
+    username: 'testuser',
+    gamesPlayed: 10,
+    wins: 5,
+    losses: 3,
+    draws: 2,
+    lastGameId: 'game-123',
+    lastGamePlayedAt: '2025-12-11T10:00:00Z'
+  };
+
   beforeEach(async () => {
     const currentGameSignal = signal<GameResponse | null>(null);
     const isLoadingSignal = signal<boolean>(false);
     const errorSignal = signal<string | null>(null);
-    const statisticsSignal = signal({
-      gamesPlayed: 0,
-      wins: 0,
-      losses: 0,
-      draws: 0,
-      winRate: 0
-    });
+    const statisticsSignal = signal<UserStatisticsResponse | null>(mockStatistics);
+    const usernameSignal = signal<string | null>('testuser');
+    const winRateSignal = signal<number>(50);
+    const isNewUserSignal = signal<boolean>(false);
 
     mockGameService = jasmine.createSpyObj('GameService', [
       'playGame',
       'clearError',
-      'resetStatistics'
+      'loadStatistics',
+      'clearAll'
     ], {
       currentGame: currentGameSignal,
       isLoading: isLoadingSignal,
       error: errorSignal,
-      statistics: statisticsSignal
+      statistics: statisticsSignal,
+      username: usernameSignal,
+      winRate: winRateSignal,
+      isNewUser: isNewUserSignal
     });
+
+    mockRouter = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
       imports: [GameComponent],
       providers: [
-        { provide: GameService, useValue: mockGameService }
+        { provide: GameService, useValue: mockGameService },
+        { provide: Router, useValue: mockRouter }
       ]
     }).compileComponents();
+
+    mockGameService.loadStatistics.and.returnValue(of(mockStatistics));
 
     fixture = TestBed.createComponent(GameComponent);
     component = fixture.componentInstance;
@@ -98,16 +116,6 @@ describe('GameComponent', () => {
       expect(mockGameService.clearError).toHaveBeenCalled();
     });
 
-    it('should reset statistics and game state', () => {
-      component.selectedHand.set('PAPER');
-      component.showResult.set(true);
-
-      component.resetStatistics();
-
-      expect(mockGameService.resetStatistics).toHaveBeenCalled();
-      expect(component.selectedHand()).toBeNull();
-      expect(component.showResult()).toBe(false);
-    });
   });
 
   describe('Result Display Helpers', () => {
@@ -156,6 +164,32 @@ describe('GameComponent', () => {
       expect(component.isLoading).toBe(mockGameService.isLoading);
       expect(component.error).toBe(mockGameService.error);
       expect(component.statistics).toBe(mockGameService.statistics);
+      expect(component.username).toBe(mockGameService.username);
+      expect(component.winRate).toBe(mockGameService.winRate);
+    });
+  });
+
+  describe('Initialization', () => {
+    it('should load statistics for existing user on init', () => {
+      expect(mockGameService.loadStatistics).toHaveBeenCalledWith('testuser');
+    });
+  });
+
+  describe('Logout', () => {
+    it('should clear all data and navigate to login', () => {
+      component.logout();
+
+      expect(mockGameService.clearAll).toHaveBeenCalled();
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/login']);
+    });
+  });
+
+  describe('Last Game Played At', () => {
+    it('should compute last game played date from statistics', () => {
+      const lastGameDate = component.lastGamePlayedAt();
+
+      expect(lastGameDate).toBeInstanceOf(Date);
+      expect(lastGameDate?.toISOString()).toBe('2025-12-11T10:00:00.000Z');
     });
   });
 });

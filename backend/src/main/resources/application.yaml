@@ -17,11 +17,11 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
+        format_sql: false
   flyway:
     enabled: true
     baseline-on-migrate: true
@@ -56,8 +56,10 @@ springdoc:
 logging:
   level:
     root: INFO
-    com.techub.rps: DEBUG
+    com.techub.rps: INFO
     org.springframework.web: INFO
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%X{correlationId}] - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%X{correlationId}] [%thread] %-5level %logger{36} - %msg%n"

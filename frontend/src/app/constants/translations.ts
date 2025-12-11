@@ -18,7 +18,6 @@ export const TRANSLATIONS = {
   STAT_DRAWS: 'Draws',
   STAT_WIN_RATE: 'Win Rate',
   ACTION_PLAY_AGAIN: 'Play Again',
-  ACTION_RESET_STATS: 'Reset Statistics',
   LOADING_MESSAGE: 'Computer is thinking...',
   VS_DIVIDER: 'VS',
   LABEL_YOU: 'You',

@@ -254,4 +254,51 @@ class UserStatisticsAdapterTest {
                 .updatedAt(Instant.now())
                 .build();
     }
+
+    @Test
+    @DisplayName("initializeStatistics should create statistics for new user")
+    void initializeStatistics_shouldCreateStatistics_forNewUser() {
+        UserEntity userEntity = createTestUserEntity();
+
+        when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(userEntity));
+        when(statisticsRepository.findByUserId(TEST_USER_ID)).thenReturn(Optional.empty());
+
+        userStatisticsAdapter.initializeStatistics(TEST_USERNAME);
+
+        ArgumentCaptor<UserStatisticsEntity> captor = ArgumentCaptor.forClass(UserStatisticsEntity.class);
+        verify(statisticsRepository).save(captor.capture());
+
+        UserStatisticsEntity savedStats = captor.getValue();
+        assertThat(savedStats.getUserId()).isEqualTo(TEST_USER_ID);
+        assertThat(savedStats.getGamesPlayed()).isZero();
+        assertThat(savedStats.getWins()).isZero();
+        assertThat(savedStats.getLosses()).isZero();
+        assertThat(savedStats.getDraws()).isZero();
+    }
+
+    @Test
+    @DisplayName("initializeStatistics should not create statistics if they already exist")
+    void initializeStatistics_shouldNotCreateStatistics_ifTheyAlreadyExist() {
+        UserEntity userEntity = createTestUserEntity();
+        UserStatisticsEntity existingStats = createTestStatisticsEntity(10, 5, 3, 2);
+
+        when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(userEntity));
+        when(statisticsRepository.findByUserId(TEST_USER_ID)).thenReturn(Optional.of(existingStats));
+
+        userStatisticsAdapter.initializeStatistics(TEST_USERNAME);
+
+        verify(statisticsRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("initializeStatistics should throw exception when user does not exist")
+    void initializeStatistics_shouldThrowException_whenUserDoesNotExist() {
+        when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userStatisticsAdapter.initializeStatistics(TEST_USERNAME))
+                .isInstanceOf(DomainException.class)
+                .hasMessageContaining("User not found");
+
+        verify(statisticsRepository, never()).save(any());
+    }
 }

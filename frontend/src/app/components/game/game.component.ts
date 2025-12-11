@@ -1,9 +1,10 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { GameService } from '../../services/game.service';
 import { Hand } from '../../models/game.model';
 import { TRANSLATIONS } from '../../constants/translations';
-import {DRAW, LOSE, WIN} from '../../constants/contstants';
+import { DRAW, LOSE, WIN } from '../../constants/contstants';
 
 @Component({
   selector: 'app-game',
@@ -12,8 +13,9 @@ import {DRAW, LOSE, WIN} from '../../constants/contstants';
   templateUrl: './game.component.html',
   styleUrls: ['./game.component.scss']
 })
-export class GameComponent {
+export class GameComponent implements OnInit {
   readonly gameService = inject(GameService);
+  readonly router = inject(Router);
   readonly T = TRANSLATIONS;
 
   selectedHand = signal<Hand | null>(null);
@@ -22,6 +24,30 @@ export class GameComponent {
   isLoading = this.gameService.isLoading;
   error = this.gameService.error;
   statistics = this.gameService.statistics;
+  username = this.gameService.username;
+  winRate = this.gameService.winRate;
+
+  lastGamePlayedAt = computed(() => {
+    const stats = this.statistics();
+    if (!stats?.lastGamePlayedAt) return null;
+    return new Date(stats.lastGamePlayedAt);
+  });
+
+  ngOnInit() {
+    const username = this.username();
+    if (!username) {
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    if (!this.gameService.isNewUser()) {
+      this.gameService.loadStatistics(username).subscribe({
+        error: (error) => {
+          console.error('Error loading statistics:', error);
+        }
+      });
+    }
+  }
 
   readonly hands: Array<{ value: Hand; icon: string; label: string }> = [
     { value: 'ROCK', icon: this.T.ICON_ROCK, label: this.T.HAND_ROCK },
@@ -51,9 +77,9 @@ export class GameComponent {
     this.gameService.clearError();
   }
 
-  resetStatistics() {
-    this.gameService.resetStatistics();
-    this.resetGame();
+  logout() {
+    this.gameService.clearAll();
+    this.router.navigate(['/login']);
   }
 
   getResultColor(result: string | undefined): string {

@@ -1,29 +1,43 @@
 <div class="game-container">
   <header class="game-header">
-    <h1>{{ T.GAME_TITLE }}</h1>
-    <p class="subtitle">{{ T.GAME_SUBTITLE }}</p>
+    <div class="header-content">
+      <div>
+        <h1>{{ T.GAME_TITLE }}</h1>
+        <p class="subtitle">{{ T.GAME_SUBTITLE }}</p>
+      </div>
+      <button class="btn-logout" (click)="logout()">Logout</button>
+    </div>
+    @if (username()) {
+      <div class="user-info">
+        <span class="username-label">Playing as:</span>
+        <span class="username">{{ username() }}</span>
+        @if (lastGamePlayedAt()) {
+          <span class="last-game">Last played: {{ lastGamePlayedAt() | date:'short' }}</span>
+        }
+      </div>
+    }
   </header>
 
   <div class="statistics-panel">
     <div class="stat-card">
       <div class="stat-label">{{ T.STAT_GAMES_PLAYED }}</div>
-      <div class="stat-value">{{ statistics().gamesPlayed }}</div>
+      <div class="stat-value">{{ statistics()?.gamesPlayed || 0 }}</div>
     </div>
     <div class="stat-card wins">
       <div class="stat-label">{{ T.STAT_WINS }}</div>
-      <div class="stat-value">{{ statistics().wins }}</div>
+      <div class="stat-value">{{ statistics()?.wins || 0 }}</div>
     </div>
     <div class="stat-card losses">
       <div class="stat-label">{{ T.STAT_LOSSES }}</div>
-      <div class="stat-value">{{ statistics().losses }}</div>
+      <div class="stat-value">{{ statistics()?.losses || 0 }}</div>
     </div>
     <div class="stat-card draws">
       <div class="stat-label">{{ T.STAT_DRAWS }}</div>
-      <div class="stat-value">{{ statistics().draws }}</div>
+      <div class="stat-value">{{ statistics()?.draws || 0 }}</div>
     </div>
     <div class="stat-card winrate">
       <div class="stat-label">{{ T.STAT_WIN_RATE }}</div>
-      <div class="stat-value">{{ statistics().winRate }}%</div>
+      <div class="stat-value">{{ winRate() }}%</div>
     </div>
   </div>
 
@@ -84,14 +98,6 @@
           {{ T.ACTION_PLAY_AGAIN }}
         </button>
       </div>
-    </div>
-  }
-
-  @if (statistics().gamesPlayed > 0) {
-    <div class="reset-container">
-      <button class="btn btn-secondary" (click)="resetStatistics()">
-        {{ T.ACTION_RESET_STATS }}
-      </button>
     </div>
   }
 

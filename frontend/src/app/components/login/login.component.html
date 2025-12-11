@@ -1,0 +1,43 @@
+<div class="login-container">
+  <div class="login-card">
+    <h1 class="title">Rock Paper Scissors</h1>
+    <p class="subtitle">Enter your username to play</p>
+
+    <form (ngSubmit)="onSubmit()" class="login-form">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          [ngModel]="username()"
+          (ngModelChange)="username.set($event)"
+          placeholder="Enter your username"
+          class="input-field"
+          [disabled]="isLoading()"
+          minlength="3"
+          maxlength="50"
+          required
+        />
+      </div>
+
+      @if (notificationMessage()) {
+        <div class="notification" [class.success]="notificationType() === 'success'" [class.error]="notificationType() === 'error'">
+          {{ notificationMessage() }}
+        </div>
+      }
+
+      <button
+        type="submit"
+        class="submit-button"
+        [disabled]="isLoading() || !username().trim()"
+      >
+        @if (isLoading()) {
+          <span>Loading...</span>
+        } @else {
+          <span>Continue</span>
+        }
+      </button>
+    </form>
+  </div>
+</div>

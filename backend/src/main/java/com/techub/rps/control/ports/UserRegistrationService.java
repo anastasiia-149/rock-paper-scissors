@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 public class UserRegistrationService {
 
     private final UserRegistrationPort userRegistrationPort;
+    private final UserStatisticsPort userStatisticsPort;
 
     public User registerUser(String username) {
         log.info("Registering user: {}", username);
@@ -24,6 +25,7 @@ public class UserRegistrationService {
         }
 
         User user = userRegistrationPort.registerUser(username);
+        userStatisticsPort.initializeStatistics(username);
         log.info("User registered successfully: {}", username);
 
         return user;

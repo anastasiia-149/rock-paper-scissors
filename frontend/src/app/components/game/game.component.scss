@@ -11,6 +11,30 @@
 .game-header {
   text-align: center;
   margin-bottom: 2rem;
+  width: 100%;
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+  }
+
+  .btn-logout {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background 0.2s;
+
+    &:hover {
+      background: #dc2626;
+    }
+  }
 
   h1 {
     font-size: 3rem;
@@ -23,6 +47,34 @@
     font-size: 1.2rem;
     color: #e5e7eb;
     margin-top: 0.5rem;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    margin-top: 1rem;
+
+    .username-label {
+      color: #9ca3af;
+      font-size: 0.9rem;
+    }
+
+    .username {
+      color: #ffa500;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .last-game {
+      color: #d1d5db;
+      font-size: 0.85rem;
+      font-style: italic;
+    }
   }
 }
 
